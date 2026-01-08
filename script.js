@@ -29,6 +29,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const tabs = document.querySelectorAll('.todoList_tab a');
+    if (tabs.length > 0) {
+        tabs[0].addEventListener('click', (e) => {
+            e.preventDefault();
+            filterByStatus('all');
+        });
+        tabs[1].addEventListener('click', (e) => {
+            e.preventDefault();
+            filterByStatus('uncompleted');
+        });
+        tabs[2].addEventListener('click', (e) => {
+            e.preventDefault();
+            filterByStatus('completed');
+        });
+    }
+
     render();
 });
 
@@ -100,7 +116,10 @@ function toggleTodo(id) { // 改狀態
 }
 
 function deleteTodo(id) {
-    todoList = todoList.filter(t => t.id !== id);
+    if(confirm("確定要刪除該項目?")){
+        todoList = todoList.filter(t => t.id !== id);
+    }
+
     render();
 }
 
@@ -110,5 +129,24 @@ function clearCompleted() {
         render()
     }
 }
+
+function filterByStatus(status) {
+
+    currentFilter = status;
+    const tabs = document.querySelectorAll('.todoList_tab a');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    if (status === 'all') {
+        tabs[0].classList.add('active');
+    } else if (status === 'uncompleted') {
+        tabs[1].classList.add('active');
+    } else if (status === 'completed') {
+        tabs[2].classList.add('active');
+    }
+
+    // 重新渲染畫面
+    render();
+}
+
 // ⬆️function 區
 
