@@ -100,7 +100,7 @@ function render() {
                 <span>${item.text}</span>
             </label>
             <a href="#" onclick="deleteTodo(${item.id}); return false;">
-                <i class="fa fa-times"></i>
+                <i class="fa fa-times delBtn"></i>
             </a>
         </li> 
         <!--複製 html 格式，把會改動的換成{}-->
