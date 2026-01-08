@@ -88,7 +88,7 @@ function render() {
     statistics.textContent = `${completedCount} 個已完成項目`;
 
     if (showList.length === 0) {
-        container.innerHTML = '<li style="text-align: center; padding: 20px; color: #9F9A91;">目前沒有待辦事項</li>';
+        container.innerHTML = '<li class="no_todo">目前沒有項目</li>';
         return;
     }
 
