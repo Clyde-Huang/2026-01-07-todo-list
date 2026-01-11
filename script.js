@@ -1,5 +1,5 @@
 let todoList = []; // 刷新，覆蓋假資料
-let currentFilter = 'all'
+let currentFilter = 'all';
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('網頁載入完成!');
