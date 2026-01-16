@@ -1,6 +1,27 @@
-let todoList = []; // 刷新，覆蓋假資料
+let todoList = []; 
 let currentFilter = 'all';
-let elements = {}; // 統一管理 DOM 元素
+let elements = {}; 
+
+// 💥A、storejs 的 key 名稱
+const STORAGE_KEY = 'myTodoList';
+
+// 💥B、從 localStorage 讀取資料
+function loadFromStorage() {
+    const data = store.get(STORAGE_KEY);
+    if (data && Array.isArray(data)) {
+        todoList = data;
+        console.log('✅ 已從本地儲存載入資料:', todoList);
+    } else {
+        todoList = [];
+        console.log('📝 本地儲存無資料，初始化空陣列');
+    }
+}
+
+// 💥C、儲存資料到 localStorage
+function saveToStorage() {
+    store.set(STORAGE_KEY, todoList);
+    console.log('💾 已儲存到本地:', todoList);
+}
 
 // 工具函式：綁定事件監聽
 function bindEventById(id, event, handler) {
@@ -16,6 +37,9 @@ function bindEventById(id, event, handler) {
 document.addEventListener('DOMContentLoaded', function () {
     console.log('網頁載入完成!');
 
+    // 💥D、網頁載入時，先讀取本地資料
+    loadFromStorage();
+
     // 初始化 DOM 元素（一次性抓取，避免重複查詢）
     elements = {
         input: document.getElementById('todoInput'),
@@ -25,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 綁定事件
     bindEventById('addTodoBtn', 'click', function (e) {
-        e.preventDefault();  // 防止連結跳轉
+        e.preventDefault();
         addTodo();
     });
 
@@ -55,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         filterByStatus('completed');
     });
 
-    // 事件委託：處理刪除和切換完成狀態（避免使用內聯 onclick）
+    // 事件委託：處理刪除和切換完成狀態
     elements.container.addEventListener('click', function (e) {
         const deleteBtn = e.target.closest('.delete-todo-btn');
         if (deleteBtn) {
@@ -72,12 +96,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // 💥E、初次渲染畫面（使用已載入的資料）
     render();
 });
 
 // ⬇️function 區
 function addTodo() {
-    const text = elements.input.value.trim(); // 使用 elements，避免重複查詢
+    const text = elements.input.value.trim();
 
     if (text === "") {
         alert("請輸入內容");
@@ -85,13 +110,16 @@ function addTodo() {
     }
 
     const newTodo = {
-        id: Date.now(), // 不顯示在畫面
+        id: Date.now(),
         text: text,
         completed: false
     };
 
     todoList.unshift(newTodo);
     elements.input.value = "";
+    
+    // 💥F、新增後儲存
+    saveToStorage();
     render();
 }
 
@@ -100,7 +128,6 @@ function render() {
 
     let showList = todoList;
 
-   
     switch (currentFilter) {
         case 'completed':
             showList = todoList.filter(item => item.completed === true);
@@ -122,7 +149,6 @@ function render() {
         return;
     }
 
-    // 遍歷，覆蓋先前html
     elements.container.innerHTML = showList.map(item => `
         <li>
             <label class="todoList_label">
@@ -133,14 +159,16 @@ function render() {
                 <i class="fa fa-times delBtn"></i>
             </a>
         </li>
-        <!--複製 html 格式，把會改動的換成{}-->
     `).join("");
 }
 
-function toggleTodo(id) { // 改狀態
+function toggleTodo(id) {
     const item = todoList.find(t => t.id === id);
     if (item) {
         item.completed = !item.completed;
+        
+        // 💥G、切換狀態後儲存
+        saveToStorage();
         render();
     }
 }
@@ -148,6 +176,9 @@ function toggleTodo(id) { // 改狀態
 function deleteTodo(id) {
     if (confirm("確定要刪除該項目?")) {
         todoList = todoList.filter(t => t.id !== id);
+        
+        // 💥H、刪除後儲存
+        saveToStorage();
         render();
     }
 }
@@ -155,6 +186,9 @@ function deleteTodo(id) {
 function clearCompleted() {
     if (confirm("確定要清除所有已完成項目嗎？")) {
         todoList = todoList.filter(t => !t.completed);
+        
+        // 💥I、清除後儲存
+        saveToStorage();
         render();
     }
 }
@@ -164,7 +198,6 @@ function filterByStatus(status) {
     const tabs = document.querySelectorAll('.todoList_tab a');
     tabs.forEach(tab => tab.classList.remove('active'));
 
-    // 使用 switch case 取代 if-else
     switch (status) {
         case 'all':
             tabs[0].classList.add('active');
@@ -177,8 +210,41 @@ function filterByStatus(status) {
             break;
     }
 
-    // 重新渲染畫面
     render();
 }
 
 // ⬆️function 區
+
+
+/* 
+================================================================================
+💥 2026 前端小筆記：storejs 套件 vs. 瀏覽器底層原生代碼對照表 💥
+================================================================================
+
+【💥B、從讀取資料讀取】
+用法：store.get(STORAGE_KEY);
+--------------------------------------------------------------------------------
+底層原生代碼：
+    const rawData = localStorage.getItem('myTodoList'); // 拿到的是「字串」
+    const data = rawData ? JSON.parse(rawData) : null;  // 必須手動轉回「陣列」
+備註：storejs 自動處理了 JSON.parse，避免了格式錯誤導致程式當機的問題。
+
+
+【💥C、儲存資料到儲存】
+用法：store.set(STORAGE_KEY, todoList);
+--------------------------------------------------------------------------------
+底層原生代碼：
+    const jsonString = JSON.stringify(todoList);        // 必須手動把「陣列」轉為「字串」
+    localStorage.setItem('myTodoList', jsonString);     // 寫入硬碟
+備註：storejs 自動處理了 JSON.stringify，讓您可以直接把整份 todoList 陣列丟進去。
+
+
+【💥D、F、G、H、I：持久化流程 (Persistence Flow)】
+這些備註點代表了「資料生命週期管理」：
+1. 網頁開啟 (DOMContentLoaded) -> 執行 loadFromStorage() -> 記憶體載入資料。
+2. 任何資料變動 (Add/Delete/Toggle) -> 執行 saveToStorage() -> 硬碟同步資料。
+3. 畫面更新 (render) -> 顯示最新狀態。
+
+這種「變動即存檔」的寫法，在 2026 年是 Web App 最穩健的實作方式。
+================================================================================
+*/
