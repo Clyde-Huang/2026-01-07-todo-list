@@ -1,9 +1,13 @@
-let todoList = []; 
+let todoList = [];
 let currentFilter = 'all';
-let elements = {}; 
+let elements = {};
 
 // 💥A、storejs 的 key 名稱
 const STORAGE_KEY = 'myTodoList';
+
+// 📡1、建立 Broadcast Channel（用於多頁面同步)
+// ****若是用 API 傳送資料就不是用 Broadcast Channel ****
+const TODO_CHANNEL = new BroadcastChannel('todo-sync-channel');
 
 // 💥B、從 localStorage 讀取資料
 function loadFromStorage() {
@@ -21,6 +25,14 @@ function loadFromStorage() {
 function saveToStorage() {
     store.set(STORAGE_KEY, todoList);
     console.log('💾 已儲存到本地:', todoList);
+
+    // 📡3、通知其他頁面資料已更新
+    TODO_CHANNEL.postMessage({
+        action: 'update',
+        timestamp: Date.now()
+    });
+    console.log('📤 已廣播更新訊息給其他頁面');
+
 }
 
 // 工具函式：綁定事件監聽
@@ -39,6 +51,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 💥D、網頁載入時，先讀取本地資料
     loadFromStorage();
+
+    // 📡2、監聽來自其他頁面的廣播訊息
+    TODO_CHANNEL.onmessage = function (event) {
+        console.log('📡 收到其他頁面的更新訊息:', event.data);
+        loadFromStorage();  // 重新從 localStorage 讀取最新資料
+        render();           // 重新渲染畫面
+    }
 
     // 初始化 DOM 元素（一次性抓取，避免重複查詢）
     elements = {
@@ -117,7 +136,7 @@ function addTodo() {
 
     todoList.unshift(newTodo);
     elements.input.value = "";
-    
+
     // 💥F、新增後儲存
     saveToStorage();
     render();
@@ -166,7 +185,7 @@ function toggleTodo(id) {
     const item = todoList.find(t => t.id === id);
     if (item) {
         item.completed = !item.completed;
-        
+
         // 💥G、切換狀態後儲存
         saveToStorage();
         render();
@@ -176,7 +195,7 @@ function toggleTodo(id) {
 function deleteTodo(id) {
     if (confirm("確定要刪除該項目?")) {
         todoList = todoList.filter(t => t.id !== id);
-        
+
         // 💥H、刪除後儲存
         saveToStorage();
         render();
@@ -186,7 +205,7 @@ function deleteTodo(id) {
 function clearCompleted() {
     if (confirm("確定要清除所有已完成項目嗎？")) {
         todoList = todoList.filter(t => !t.completed);
-        
+
         // 💥I、清除後儲存
         saveToStorage();
         render();
@@ -218,7 +237,7 @@ function filterByStatus(status) {
 
 /* 
 ================================================================================
-💥 2026 前端小筆記：storejs 套件 vs. 瀏覽器底層原生代碼對照表 💥
+💥 storejs 套件 vs. 瀏覽器底層原生代碼對照表 💥
 ================================================================================
 
 【💥B、從讀取資料讀取】
@@ -245,6 +264,5 @@ function filterByStatus(status) {
 2. 任何資料變動 (Add/Delete/Toggle) -> 執行 saveToStorage() -> 硬碟同步資料。
 3. 畫面更新 (render) -> 顯示最新狀態。
 
-這種「變動即存檔」的寫法，在 2026 年是 Web App 最穩健的實作方式。
 ================================================================================
 */
