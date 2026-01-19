@@ -15,87 +15,35 @@
 <body>
     <!-- ToDo List -->
     <div id="todoListPage" class="bg-half">
-     
         <div class="conatiner todoListPage vhContainer">
             <div class="todoList_Content">
                 <div class="inputBox">
-                    <input type="text" placeholder="請輸入待辦事項">
-                    <a href="#">
+                    <input type="text" id="todoInput" placeholder="請輸入待辦事項">
+                    <a href="#" id="addTodoBtn">
                         <i class="fa fa-plus"></i>
                     </a>
                 </div>
                 <div class="todoList_list">
                     <ul class="todoList_tab">
-                        <li><a href="#" class="active">全部</a></li>
-                        <li><a href="#">待完成</a></li>
-                        <li><a href="#">已完成</a></li>
+                        <li><a href="#" id="tabAll" class="active">全部</a></li>
+                        <li><a href="#" id="tabUncompleted">待完成</a></li>
+                        <li><a href="#" id="tabCompleted">已完成</a></li>
                     </ul>
                     <div class="todoList_items">
-                        <ul class="todoList_item">
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>把冰箱發霉的檸檬拿去丟</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>打電話叫媽媽匯款給我</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>整理電腦資料夾</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>繳電費水費瓦斯費</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>約vicky禮拜三泡溫泉</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <label class="todoList_label">
-                                    <input class="todoList_input" type="checkbox" value="true">
-                                    <span>約ada禮拜四吃晚餐</span>
-                                </label>
-                                <a href="#">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </li>
+                        <ul class="todoList_item" id="todoListContainer">
+                            <!-- 待辦事項將動態插入這裡 -->
                         </ul>
                         <div class="todoList_statistics">
-                            <p> 5 個已完成項目</p>
-                            <a href="#">清除已完成項目</a>
+                            <p id="todoStatistics">0 個已完成項目</p>
+                            <a href="#" id="clearCompletedBtn">清除已完成項目</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- 💥A、引入 storejs 函式庫，必須放在 script.js 之前 -->
+    <script src="https://unpkg.com/store@2.0.12/dist/store.legacy.min.js"></script>
     <script src="./script.js"></script>
 </body>
 
