@@ -1,6 +1,7 @@
-let todoList = [];
+let todoList = []; // 刷新，覆蓋假資料
 let currentFilter = 'all';
 let elements = {};
+
 
 // 💥A、storejs 的 key 名稱
 const STORAGE_KEY = 'myTodoList';
