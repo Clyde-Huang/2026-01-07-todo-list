@@ -10,3 +10,5 @@ Thumbs.db
 
 # 忽略編輯器個人設定 (選配)
 .vscode/
+
+db.json
