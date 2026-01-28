@@ -281,20 +281,28 @@ function render() {
 }
 
 function toggleTodo(id) {
-  const item = todoList.find((t) => t.id === id);
-  if (!item) return;
+  // 1. 關鍵修正：將兩邊都轉為字串進行比對，避免 2 === "2" 失敗的問題
+  const item = todoList.find((t) => String(t.id) === String(id));
 
-  if (isLoading) {
-    alert("系統處理中，請稍候...");
+  if (!item) {
+    console.error("❌ 找不到該項目，收到的 ID:", id);
     return;
   }
 
+  // 避免重複連點
+  if (isLoading) {
+    console.log("⏳ 系統處理中，請稍候...");
+    return;
+  }
+
+  // 準備更新的資料
   const updatedTodo = {
     completed: !item.completed
   };
 
   setLoading(true);
 
+  // 2. 發送 PATCH 請求到雲端伺服器
   fetch(`${API_URL}/${id}`, {
     method: "PATCH",
     headers: {
@@ -313,27 +321,32 @@ function toggleTodo(id) {
 
       lastOperationTime = Date.now();
 
-      const index = todoList.findIndex((t) => t.id === id);
+      // 3. 同步本地資料 (同樣使用字串比對找到索引)
+      const index = todoList.findIndex((t) => String(t.id) === String(id));
       if (index !== -1) {
         todoList[index] = updatedData;
       }
 
-      // **修正：先渲染，再發送廣播**
+      // 4. 立即更新畫面渲染
       render();
 
+      // 5. 發送廣播通知其他分頁
       setTimeout(() => {
-        TODO_CHANNEL.postMessage({
-          action: "update",
-          timestamp: Date.now(),
-          pageId: PAGE_ID
-        });
-        console.log("📤 已發送廣播通知其他頁面");
+        if (typeof TODO_CHANNEL !== "undefined") {
+          TODO_CHANNEL.postMessage({
+            action: "update",
+            timestamp: Date.now(),
+            pageId: PAGE_ID
+          });
+          console.log("📤 已發送廣播通知其他頁面");
+        }
       }, 100);
     })
     .catch(function (error) {
       console.error("❌ 更新失敗:", error);
-      alert("更新待辦事項失敗，請稍後再試");
-      item.completed = !item.completed;
+      alert("更新狀態失敗，請檢查網路連線");
+
+      // 失敗時保持原本狀態，不需要額外動作，下次 render 會刷回原樣
     })
     .finally(function () {
       setLoading(false);
