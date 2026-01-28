@@ -2,7 +2,7 @@ let todoList = []; // 刷新，覆蓋假資料
 let currentFilter = "all";
 let elements = {};
 let isLoading = false; // ✨載入狀態
-const API_URL = "http://localhost:3000/todos"; // ✨API 基礎 URL
+const API_URL = "/todos"; 
 
 // 💥A、storejs 的 key 名稱（已改用 json-server，此變數可保留參考）
 const STORAGE_KEY = "myTodoList";
