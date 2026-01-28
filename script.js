@@ -2,7 +2,7 @@ let todoList = []; // 刷新，覆蓋假資料
 let currentFilter = "all";
 let elements = {};
 let isLoading = false; // ✨載入狀態
-const API_URL = "/todos"; 
+const API_URL = "/todos";
 
 // 💥A、storejs 的 key 名稱（已改用 json-server，此變數可保留參考）
 const STORAGE_KEY = "myTodoList";
@@ -348,36 +348,49 @@ function deleteTodo(id) {
   setLoading(true);
 
   fetch(`${API_URL}/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
+    // 雖然 DELETE 不一定需要，但加上 headers 是好習慣
+    headers: {
+      "Content-Type": "application/json"
+    }
   })
     .then(function (response) {
       if (!response.ok) {
         throw new Error("刪除失敗，狀態碼: " + response.status);
       }
-      return response.json();
+      // 注意：某些版本的 json-server 在 DELETE 後回傳 204 No Content，
+      // 此時 response.json() 會噴錯。保險做法是檢查 status：
+      return response.status === 204 ? {} : response.json();
     })
     .then(function () {
-      console.log("✅ 刪除成功");
+      console.log("✅ 伺服器同步成功");
 
       lastOperationTime = Date.now();
 
-      todoList = todoList.filter((t) => t.id !== id);
+      // 1. 更新本地變數 (確保型別一致，id 有時是字串有時是數字)
+      todoList = todoList.filter((t) => String(t.id) !== String(id));
 
-      // **修正：先渲染，再發送廣播**
+      // 2. 立即執行畫面渲染
       render();
 
+      // 3. 延遲發送廣播 (確保 render 佔用的線程已釋放)
       setTimeout(() => {
-        TODO_CHANNEL.postMessage({
-          action: "update",
-          timestamp: Date.now(),
-          pageId: PAGE_ID
-        });
-        console.log("📤 已發送廣播通知其他頁面");
+        if (typeof TODO_CHANNEL !== "undefined") {
+          TODO_CHANNEL.postMessage({
+            action: "update",
+            timestamp: Date.now(),
+            pageId: PAGE_ID
+          });
+          console.log("📤 已發送廣播通知其他頁面");
+        }
       }, 100);
     })
     .catch(function (error) {
       console.error("❌ 刪除失敗:", error);
-      alert("刪除待辦事項失敗，請稍後再試");
+      alert("刪除失敗，請檢查網路連線或伺服器狀態");
+
+      // 失敗時重新抓取資料，確保畫面與伺服器同步
+      // getTodos();
     })
     .finally(function () {
       setLoading(false);
